@@ -1,0 +1,36 @@
+services:
+    spring-db:
+        image: mysql
+        container_name: users.spring-db
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            TZ: Asia/Manila
+        expose:
+            - 3303
+        ports:
+            - 3303:3306
+        volumes:
+            - users-spring:/var/lib/mysql
+
+    spring:
+        image: users-spring
+        container_name: users.spring
+        build:
+            context: .
+        ports:
+            - 8080:8080
+        links:
+            - spring-db
+        depends_on:
+            - spring-db
+        environment:
+            SPRING_DATASOURCE_URL: jdbc:mysql://spring-db:${PGPORT}/${MYSQL_DATABASE}
+            SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+            SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+
+volumes:
+    users-spring:

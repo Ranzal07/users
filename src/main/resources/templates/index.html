@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <span>
+            <button class="btn btn-primary" style="background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);">
+                <a th:href="@{/dashboard/index}" style="text-decoration: none;">Dashboard</a>
+            </button>
+            <button class="btn btn-primary" style="background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);">
+                <a th:href="@{/user/index}" style="text-decoration: none;">Users</a>
+            </button>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        </span>
+    </div>
+    <div class="container" style="text-align: center;">
+        <h1 th:text="'Welcome, ' + ${authUser.firstName} + ' ' + ${authUser.lastName} + ' - ' + ${authUser.role}"></h1>
+        <h2>List of Users</h2>      
+        <table class="table table-striped" style="border: 1px solid black;">
+            <thead>
+                <tr>
+                    <th style="text-align: center;">ID</th>
+                    <th style="text-align: center;">First Name</th>
+                    <th style="text-align: center;">Last Name</th>
+                    <th style="text-align: center;">Email</th>
+                    <th style="text-align: center;">Role</th>
+                    <th th:if="${authUser.role != 'Client'}" style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <div th:each="user : ${users}">
+                    <tr th:id="'showDetails'+${user.id}">
+                        <td th:text="${user.id}"></td>
+                        <td th:text="${user.firstName}"></td>
+                        <td th:text="${user.lastName}"></td>
+                        <td th:text="${user.email}"></td>
+                        <td th:text="${user.role}"></td>
+                        <td th:if="${(authUser.role == 'Super Admin' || (authUser.role == 'Admin' && user.role != 'Super Admin'))}">
+                            <div style="display: flex; gap: 5px;">
+                                <button class="btn btn-primary" th:data-id="${user.id}" onclick="editDetails(this.dataset.id)">Edit</button>
+                                <form action="@{/delete}" method="post">
+                                    <input type="hidden" name="id" th:value="${user.id}" />
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:id="'editDetails'+${user.id}" style="display: none;">
+                        <form action="update" method="post">
+                            <td th:text="${user.id}"></td>
+                            <td><input type="text" name="firstName" th:value="${user.firstName}" style="text-align: center;"/></td>
+                            <td><input type="text" name="lastName" th:value="${user.lastName}" style="text-align: center;"/></td>
+                            <td><input type="text" name="email" th:value="${user.email}" style="text-align: center;"/></td>
+                            <td>
+                                <select type="text" name="role">
+                                    <option value="" disabled selected>Select Role</option>
+                                    <option th:value="'Super Admin'" th:text="'Super Admin'" th:selected="${user.role == 'Super Admin'}"></option>
+                                    <option th:value="'Admin'" th:text="'Admin'" th:selected="${user.role == 'Admin'}"></option>
+                                    <option th:value="'Client'" th:text="'Client'" th:selected="${user.role == 'Client'}"></option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn btn-primary">Update</button>
+                                <input type="hidden" name="id" th:value="${user.id}" />
+                                <button class="btn btn-danger" th:data-id="${user.id}" onclick="showDetails(this.dataset.id)"><a th:href="@{/user/cancel}" style="color: white; text-decoration: none;">Cancel</a></button>
+                            </td>
+                        </form>
+                    </tr>
+                </div>
+                <tr th:if="${authUser.role != 'Client'}">
+                    <form action="add" method="post">
+                        <td></td>
+                        <td><input type="text" name="firstName"/></td>
+                        <td><input type="text" name="lastName"/></td>
+                        <td><input type="text" name="email"/></td>
+                        <td>
+                            <select type="text" name="role">
+                                <option value="" disabled selected>Select Role</option>
+                                <option th:value="'Super Admin'" th:text="'Super Admin'"></option>
+                                <option th:value="'Admin'" th:text="'Admin'"></option>
+                                <option th:value="'Client'" th:text="'Client'"></option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function editDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = 'none';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = '';
+        }
+
+        function showDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = '';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,10 +1,11 @@
 package com.demo.users.service;
 
-import com.demo.users.model.User;
+import com.demo.users.model.*;
 import com.demo.users.repository.UserRepository;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +23,10 @@ public class UserService {
     }
 
     public void addUser(User user) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String uName = user.getFirstName().toLowerCase();
+        user.setUsername(uName);
+        user.setPassword(encoder.encode("pass"));
         userRepository.save(user);
     }
 
@@ -30,7 +35,6 @@ public class UserService {
         existingUser.setFirstName(user.getFirstName());
         existingUser.setLastName(user.getLastName());
         existingUser.setEmail(user.getEmail());
-        existingUser.setRole(user.getRole());
         userRepository.save(existingUser);
     }
 

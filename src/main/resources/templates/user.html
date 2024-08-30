@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div th:insert="~{dashboard :: menu}"></div>
+    <div class="container" style="text-align: center;">
+        <h2>List of Users</h2>      
+        <table class="table table-striped" style="border: 1px solid black;">
+            <thead>
+                <tr>
+                    <th style="text-align: center;">Line No</th>
+                    <th style="text-align: center;">First Name</th>
+                    <th style="text-align: center;">Last Name</th>
+                    <th style="text-align: center;">Email</th>
+                    <th style="text-align: center;">Job Title</th>
+                    <th th:if="${authUser.employment.position.name == 'President'}" style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <div th:each="user, interStatus : ${users}">
+                    <tr th:id="'showDetails'+${user.id}">
+                        <td th:text="${interStatus.index + 1}"></td>
+                        <td th:text="${user.firstName}"></td>
+                        <td th:text="${user.lastName}"></td>
+                        <td th:text="${user.email}"></td>
+                        <td th:text="${user.employment.level.name + ' ' + user.employment.position.name}"></td>
+                    </tr>
+                </div>
+                <tr th:if="${authUser.employment.position.name == 'President'}">
+                    <form action="add" method="post">
+                        <input type="hidden" name="level" th:value="1"/>
+                        <td></td>
+                        <td><input type="text" name="firstName"/></td>
+                        <td><input type="text" name="lastName"/></td>
+                        <td><input type="text" name="email"/></td>
+                        <td>Intern 
+                            <select type="text" name="position">
+                                <option value="" disabled selected>Select Position</option>
+                                <option th:each="position : ${positions}"
+                                        th:if="${authUser.employment.position.name != 'President' || position.name != 'President'}" 
+                                        th:value="${position.id}" 
+                                        th:text="${position.name}">
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function editDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = 'none';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = '';
+        }
+
+        function showDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = '';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

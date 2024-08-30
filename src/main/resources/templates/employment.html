@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div th:insert="~{dashboard :: menu}"></div>
+    <div class="container" style="text-align: center;">
+        <h2>Employment Management</h2>      
+        <table class="table table-striped" style="border: 1px solid black;">
+            <thead>
+                <tr>
+                    <th style="text-align: center;">Line No</th>
+                    <th style="text-align: center;">Full Name</th>
+                    <th style="text-align: center;">Level</th>
+                    <th style="text-align: center;">Position</th>
+                    <th style="text-align: center;">Salary</th>
+                    <th style="text-align: center;">Status</th>
+                    <th th:if="${authUser.employment.position.name == 'President'}" style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <div th:each="user, interStatus : ${users}">
+                    <tr th:id="'showDetails'+${user.id}">
+                        <td th:text="${interStatus.index + 1}"></td>
+                        <td th:text="${user.firstName + ' ' + user.lastName}"></td>
+                        <td th:text="${user.employment.level.name}"></td>
+                        <td th:text="${user.employment.position.name}"></td>
+                        <td th:if="${(authUser.employment.position.name == 'President' || (authUser.employment.position.name == 'HR' && user.employment.position.name != 'President')) || (authUser.employment.position.name != 'President' && authUser.id == user.id)}" th:text="${#numbers.formatDecimal((user.employment.position.salary * user.employment.level.salaryRate), 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:unless="${(authUser.employment.position.name == 'President' || (authUser.employment.position.name == 'HR' && user.employment.position.name != 'President')) || (authUser.employment.position.name != 'President' && authUser.id == user.id)}" style="color: red;">CONFIDENTIAL</td>
+                        <td th:text="${user.employment.status}"></td>
+                        <td th:if="${(authUser.employment.position.name == 'President' || (authUser.employment.position.name == 'Admin' && user.employment.position.name != 'President'))}">
+                            <button class="btn btn-primary" th:data-id="${user.id}" onclick="editDetails(this.dataset.id)">Edit</button>
+                        </td>
+                    </tr>
+                    <tr th:id="'editDetails'+${user.id}" style="display: none;">
+                        <form action="update" method="post">
+                            <input type="hidden" name="user" th:value="${user.id}" />
+                            <td th:text="${user.id}"></td>
+                            <td th:text="${user.firstName + ' ' + user.lastName}"></td>
+                            <td th:if="${authUser.employment.position.name == 'President'}">
+                                <select type="text" name="level">
+                                    <option value="" disabled selected>Select Level</option>
+                                    <option th:each="level : ${levels}" 
+                                            th:value="${level.id}" 
+                                            th:text="${level.name}" 
+                                            th:selected="${level.name == user.employment.level.name}">
+                                    </option>
+                                </select>
+                            </td>
+                            <td th:if="${authUser.employment.position.name == 'President'}">
+                                <select type="text" name="position">
+                                    <option value="" disabled selected>Select Position</option>
+                                    <option th:each="position : ${positions}" 
+                                            th:value="${position.id}" 
+                                            th:text="${position.name}" 
+                                            th:selected="${position.name == user.employment.position.name}">
+                                    </option>
+                                </select>
+                            </td>
+                            <td th:unless="${authUser.employment.position.name == 'President'}" th:text="${user.employment.position.name}"></td>
+                            <td th:text="${#numbers.formatDecimal((user.employment.position.salary * user.employment.level.salaryRate), 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td th:text="${user.employment.status}"></td>
+                            <td>
+                                <button class="btn btn-primary">Update</button>
+                                <input type="hidden" name="id" th:value="${user.id}" />
+                                <button class="btn btn-danger" th:data-id="${user.id}" onclick="showDetails(this.dataset.id)"><a th:href="@{/employment/index}" style="color: white; text-decoration: none;">Cancel</a></button>
+                            </td>
+                        </form>
+                    </tr>
+                </div>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function editDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = 'none';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = '';
+        }
+
+        function showDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = '';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

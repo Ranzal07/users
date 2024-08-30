@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div th:insert="~{dashboard :: menu}"></div>
+    <div class="container" style="text-align: center;">
+        <h2>List of Levels</h2>      
+        <table class="table table-striped" style="border: 1px solid black;">
+            <thead>
+                <tr>
+                    <th style="text-align: center;">Line No</th>
+                    <th style="text-align: center;">Name</th>
+                    <th style="text-align: center;">Salary Rate</th>
+                    <th th:if="${authUser.employment.position.name != 'Client'}" style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <div th:each="level, interStatus : ${levels}">
+                    <tr th:id="'showDetails'+${level.id}">
+                        <td th:text="${interStatus.index + 1}"></td>
+                        <td th:text="${level.name}"></td>
+                        <td th:text="${level.salaryRate}"></td>
+                        <td th:if="${(authUser.employment.position.name == 'President' || (authUser.employment.position.name == 'Admin' && level.employment.position.name != 'President'))}">
+                            <button class="btn btn-primary" th:data-id="${level.id}" onclick="editDetails(this.dataset.id)">Edit</button>
+                            <button type="button" class="btn btn-danger">
+                                <a th:href="@{/level/delete/(id=${level.id})}" style="color: white; text-decoration: none;">Delete</a>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:id="'editDetails'+${level.id}" style="display: none;">
+                        <form action="update" method="post">
+                            <td th:text="${level.id}"></td>
+                            <td><input type="text" name="name" th:value="${level.name}" style="text-align: center;"/></td>
+                            <td><input type="text" name="salaryRate" th:value="${level.salaryRate}" style="text-align: center;"/></td>
+                            <td>
+                                <button class="btn btn-primary">Update</button>
+                                <input type="hidden" name="id" th:value="${level.id}" />
+                                <button class="btn btn-danger" th:data-id="${level.id}" onclick="showDetails(this.dataset.id)"><a th:href="@{/level/index}" style="color: white; text-decoration: none;">Cancel</a></button>
+                            </td>
+                        </form>
+                    </tr>
+                </div>
+                <tr th:if="${authUser.employment.position.name != 'Client'}">
+                    <form action="add" method="post">
+                        <td></td>
+                        <td><input type="text" name="name"/></td>
+                        <td><input type="text" name="salaryRate"/></td>
+                        <td>
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function editDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = 'none';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = '';
+        }
+
+        function showDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = '';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

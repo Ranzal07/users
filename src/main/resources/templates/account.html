@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div th:insert="~{dashboard :: menu}"></div>
+    <div class="container" style="text-align: center;">
+        <h2>Account Management</h2>      
+        <table class="table table-striped" style="border: 1px solid black;">
+            <thead>
+                <tr>
+                    <th style="text-align: center;">Line No</th>
+                    <th style="text-align: center;">First Name</th>
+                    <th style="text-align: center;">Last Name</th>
+                    <th style="text-align: center;">Email</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:id="'showDetails'+${authUser.id}">
+                    <td th:text="${1}"></td>
+                    <td th:text="${authUser.firstName}"></td>
+                    <td th:text="${authUser.lastName}"></td>
+                    <td th:text="${authUser.email}"></td>
+                    <td>
+                        <button class="btn btn-primary" th:data-id="${authUser.id}" onclick="editDetails(this.dataset.id)">Edit</button>
+                    </td>
+                </tr>
+                <tr th:id="'editDetails'+${authUser.id}" style="display: none;">
+                    <form action="update" method="post">
+                        <input type="hidden" name="id" th:value="${authUser.id}" />
+                        <td th:text="${authUser.id}"></td>
+                        <td><input type="text" name="firstName" th:value="${authUser.firstName}" style="text-align: center;"/></td>
+                        <td><input type="text" name="lastName" th:value="${authUser.lastName}" style="text-align: center;"/></td>
+                        <td><input type="text" name="email" th:value="${authUser.email}" style="text-align: center;"/></td>
+                        <td>
+                            <button class="btn btn-primary">Update</button>
+                            <button class="btn btn-danger" th:data-id="${authUser.id}" onclick="showDetails(this.dataset.id)"><a th:href="@{/user/account}" style="color: white; text-decoration: none;">Cancel</a></button>
+                        </td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function editDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = 'none';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = '';
+        }
+
+        function showDetails(id){
+            var showDetails = document.getElementById('showDetails'+id);
+            showDetails.style.display = '';
+            var editDetails = document.getElementById('editDetails'+id);
+            editDetails.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

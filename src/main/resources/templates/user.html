@@ -18,7 +18,7 @@
                     <th style="text-align: center;">Line No</th>
                     <th style="text-align: center;">First Name</th>
                     <th style="text-align: center;">Last Name</th>
-                    <th style="text-align: center;">Email</th>
+                    <th th:if="${authUser.employment.position.name == 'President' || authUser.employment.position.name == 'HR'}" style="text-align: center;">Email</th>
                     <th style="text-align: center;">Job Title</th>
                     <th th:if="${authUser.employment.position.name == 'President'}" style="text-align: center;">Action</th>
                 </tr>
@@ -29,7 +29,7 @@
                         <td th:text="${interStatus.index + 1}"></td>
                         <td th:text="${user.firstName}"></td>
                         <td th:text="${user.lastName}"></td>
-                        <td th:text="${user.email}"></td>
+                        <td th:if="${authUser.employment.position.name == 'President' || authUser.employment.position.name == 'HR'}" th:text="${user.email}"></td>
                         <td th:text="${user.employment.level.name + ' ' + user.employment.position.name}"></td>
                     </tr>
                 </div>

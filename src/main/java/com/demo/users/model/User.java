@@ -1,7 +1,10 @@
 package com.demo.users.model;
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "user")
 public class User {
     @Id
@@ -26,26 +29,4 @@ public class User {
     
     @Column(name = "password")
     private String password;
-
-    // Getters and setters
-    public Long getId() { return id; }
-    public void setId(long id) { this.id = id; }
-
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public Employment getEmployment() { return employment; }
-    public void setEmployment(Employment employment) { this.employment = employment; }
-
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    
-    public String getPassword() { return password; }
-    public void setPassword(String string) { this.password = string; }
 }

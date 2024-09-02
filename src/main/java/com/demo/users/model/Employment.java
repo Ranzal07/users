@@ -1,8 +1,11 @@
 package com.demo.users.model;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "employment")
 public class Employment {
     @Id
@@ -19,17 +22,4 @@ public class Employment {
 
     @Column(name = "status")
     private String status;
-
-    // Getters and setters
-    public Long getId() { return id; }
-    public void setId(long id) { this.id = id; }
-
-    public Level getLevel() { return level; }
-    public void setLevel(Level level) { this.level = level; }
-
-    public Position getPosition() { return position; }
-    public void setPosition(Position position) { this.position = position; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 }

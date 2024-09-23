@@ -1,0 +1,53 @@
+input[type=text]{
+  text-align: center;
+}
+
+.q-header {
+  background-color: rgba(9, 25, 46, 255);
+}
+
+.q-card {
+  background-color: rgba(23, 43, 70, 200);
+}
+
+.custom-table {
+  border-color: #003366;
+  th,
+  .q-table__bottom {
+    background-color: #003366;
+  }
+
+  th {
+    font-size: 15px;
+    font-weight:1200;
+  }
+
+  tbody {
+    background-color: #002244;
+  }
+
+  td {
+    border-color: #003366;
+  }
+
+  tr:nth-child(even) {
+    background-color: #001a33;
+  }
+
+  tr:hover {
+    background-color: #0d3153a8;
+  }
+
+  .line-no-col {
+    width: 100px;
+  }
+
+  .action-col {
+    min-width: 250px;
+  }
+
+  .dynamic-col {
+    min-width: 250px;
+    white-space: nowrap;
+  }
+}

@@ -1,0 +1,20 @@
+spring:
+    config:
+        import: optional:file:.env[.properties]
+    datasource:
+        url: jdbc:mysql://localhost:3303/users
+        username: admin
+        password: password
+        driverClassName: com.mysql.cj.jdbc.Driver
+        hikari:
+            maximum-pool-size: 10
+    jpa:
+        database-platform: org.hibernate.dialect.MySQLDialect
+        hibernate:
+            ddl-auto: update
+
+security:
+    jwt:
+        secret-key: ${SPRING_SECURITY_JWT_SECRET_KEY}
+        access-expiration-time: ${SPRING_SECURITY_JWT_ACCESS_EXP}
+        refresh-expiration-time: ${SPRING_SECURITY_JWT_REFRESH_EXP}

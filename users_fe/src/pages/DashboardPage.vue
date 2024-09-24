@@ -3,9 +3,9 @@
     <div class="menu">
       <!-- Welcome message -->
       <h4 class="text-center">
-        Welcome, {{ authUser.firstName }} {{ authUser.lastName }} -
-        {{ authUser.employment?.level?.name }}
-        {{ authUser.employment?.position?.name }}
+        Welcome, {{ authUser?.firstName }} {{ authUser?.lastName }} -
+        {{ authUser?.employment?.level?.name }}
+        {{ authUser?.employment?.position?.name }}
       </h4>
     </div>
   </q-page>
@@ -14,20 +14,14 @@
 <script lang="ts">
 import { User } from 'src/model/types';
 import { defineComponent, ref} from 'vue';
-import * as userService from 'src/service/userService';
+import * as authService from 'src/service/authService';
 export default defineComponent({
   setup() {
-    const users = ref<User[]>([]);
-    const authUser = ref<any>({});
+    const authUser = ref<User>();
 
     const getUsers = async () => {
       try {
-        const authData = localStorage.getItem('authData');
-        if (authData) {
-          authUser.value = JSON.parse(authData).user;
-        }
-        users.value = await userService.getAllUsers();
-        authUser.value = users.value.find((user: User) => user.id === authUser.value.id);
+        authUser.value = await authService.getAuthUser();
       } catch (error) {
         console.error('Failed to fetch users', error);
       }

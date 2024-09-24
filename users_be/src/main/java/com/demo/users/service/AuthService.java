@@ -3,12 +3,12 @@ package com.demo.users.service;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
-
 import com.demo.users.model.*;
 import com.demo.users.repository.UserRepository;
 import com.demo.users.utils.JwtUtil;
 
-import lombok.*;
+import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -17,45 +17,41 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authManager;
 
-    public AuthResponse authenticate(AuthRequest request) {
+    public void authenticate(AuthRequest request, HttpServletResponse response) {
         authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
+            new UsernamePasswordAuthenticationToken(
+                request.getUsername(),
+                request.getPassword()
+            )
         );
 
         User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
-        final String jwtToken = jwtUtil.generateToken(user);
-        final String refreshToken = jwtUtil.generateRefreshToken(user);
-
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .refreshToken(refreshToken)
-                .user(user)
-                .build();
+        jwtUtil.generateCookie(user, response);
     }
 
-    public Boolean isTokenValid(String token) {
+    public Boolean isTokenValidFromCookie(String token) {
         String username = jwtUtil.extractUsername(token);
-        User user = userRepository.findByUsername(username).orElseThrow();
-        return jwtUtil.isTokenValid(token, user);
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        return jwtUtil.isTokenValidFromCookie(token, user);
     }
 
-    public AuthResponse refreshToken(String refreshToken) {
+    public void refreshToken(String refreshToken, HttpServletResponse response) {
         String username = jwtUtil.extractUsername(refreshToken);
-        User user = userRepository.findByUsername(username).orElseThrow();
-        if (jwtUtil.isTokenValid(refreshToken, user)) {
-            String newAccessToken = jwtUtil.generateToken(user);
-            String newRefreshToken = jwtUtil.generateRefreshToken(user);
-            
-            return AuthResponse.builder()
-                    .token(newAccessToken)
-                    .refreshToken(newRefreshToken)
-                    .user(user)
-                    .build();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (jwtUtil.isTokenValidFromCookie(refreshToken, user)) {
+            jwtUtil.generateCookie(user, response);
         } else {
             throw new RuntimeException("Invalid refresh token");
         }
+    }
+
+    public User getAuthUser(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return userRepository.findByUsername(username).orElse(null);
+    }
+
+    public void clearTokenCookies(HttpServletResponse response) {
+        jwtUtil.clearTokenCookies(response);
     }
 }

@@ -77,12 +77,7 @@ export default defineComponent({
 
     const authUser = async () => {
       try {
-        const response = await authenticateUser(username.value, password.value);
-        localStorage.setItem('authData', JSON.stringify({
-          token: response.token,
-          refreshToken: response.refreshToken,
-          user: response.user
-        }));
+        await authenticateUser(username.value, password.value);
         router.push('/v1/dashboard/index');
       } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {

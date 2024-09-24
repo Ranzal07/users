@@ -6,8 +6,11 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.lang.NonNull;
-import com.demo.users.model.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import com.demo.users.model.User;
 
 import java.security.Key;
 import java.util.Base64;
@@ -20,72 +23,102 @@ import java.util.function.Function;
 public class JwtUtil {
 
     @Value("${security.jwt.secret-key}")
-	private String tokenSecretKey;
+    private String tokenSecretKey;
 
-	@Value("${security.jwt.access-expiration-time}")
-	private long tokenAccessExp;
+    @Value("${security.jwt.access-expiration-time}")
+    private long accessTokenExp;
 
-	@Value("${security.jwt.refresh-expiration-time}")
-	private long tokenRefreshExp;
+    @Value("${security.jwt.refresh-expiration-time}")
+    private long refreshTokenExp;
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public void generateCookie(User user, HttpServletResponse response) {
+        String accessToken = generateAccessToken(user);
+        String refreshToken = generateRefreshToken(user);
+        Long accessTokenMaxAge = accessTokenExp / 1000;
+        Long refreshTokenMaxAge = refreshTokenExp / 1000;
+        setCookie(accessToken, refreshToken, accessTokenMaxAge, refreshTokenMaxAge, response);
+    }
+
+    private String generateAccessToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        return Jwts.builder()
+            .setClaims(claims)
+            .setSubject(user.getUsername())
+            .setIssuedAt(new Date(System.currentTimeMillis()))
+            .setExpiration(new Date(System.currentTimeMillis() + accessTokenExp))
+            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+            .compact();
+    }
+
+    private String generateRefreshToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        return Jwts.builder()
+            .setClaims(claims)
+            .setSubject(user.getUsername())
+            .setIssuedAt(new Date(System.currentTimeMillis()))
+            .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExp))
+            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+            .compact();
+    }
+
+    private void setCookie(String token, String refreshToken, long accessTokenMaxAge, long refreshTokenMaxAge, HttpServletResponse response) {
+        ResponseCookie tokenCookie = ResponseCookie.from("accessToken", token)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(accessTokenMaxAge)
+            .sameSite("Strict")
+            .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(refreshTokenMaxAge)
+            .sameSite("Strict")
+            .build();
+
+        response.addHeader("Set-Cookie", tokenCookie.toString());
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
     }
     
-    public <T> T extractClaim(String token, @NonNull Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    public String generateToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, user.getUsername());
-    }
-
-    private String createToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + tokenAccessExp))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    public String generateRefreshToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        return createRefreshToken(claims, user.getUsername());
-    }
-
-    public String createRefreshToken(Map<String, Object> claims, String subject) {
-		return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + tokenRefreshExp))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-	}
-
-    public Boolean isTokenValid(String token, User user) {
+    public boolean isTokenValidFromCookie(String token, User user) {
         final String username = extractUsername(token);
-        return (username.equals(user.getUsername()) && !isTokenExpired(token));
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        return (username.equals(user.getUsername()) && !extractExpiration(token).before(new Date()));
     }
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public Claims extractAllClaims(String token) {
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    private <T> T extractClaim(String token, @NonNull Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public void clearTokenCookies(HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("accessToken", null);
+        accessTokenCookie.setMaxAge(0);
+        accessTokenCookie.setPath("/");
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setPath("/");
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
     }
 
     private Key getSigningKey() {

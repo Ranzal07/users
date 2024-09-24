@@ -1,7 +1,8 @@
 package com.demo.users.controller;
 
-import com.demo.users.model.AuthResponse;
+import com.demo.users.service.AuthService;
 import com.demo.users.model.AuthRequest;
+import com.demo.users.model.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
-import com.demo.users.service.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,45 +24,55 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/authenticate")
-    public ResponseEntity<?> authenticate(@RequestBody AuthRequest request){
+    public ResponseEntity<String> authenticate(@RequestBody AuthRequest request, HttpServletResponse response) {
         try {
-            AuthResponse response = authService.authenticate(request);
-            return ResponseEntity.ok(response);
+            authService.authenticate(request, response);
+            return ResponseEntity.ok("Authentication successful");
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during authentication");
-        }
-    }
-
-    @PostMapping("/verifyToken")
-    public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String token, @RequestBody String refreshToken) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        if (authService.isTokenValid(token)) {
-            return ResponseEntity.ok("Token is valid.");
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during authentication: " + e.getMessage());
         }
     }
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshToken(@RequestBody String refreshToken) {
+    public ResponseEntity<String> refreshToken(@CookieValue(required = false) String accessToken, @CookieValue(required = false) String refreshToken, HttpServletResponse response) {
+        if (accessToken == null || accessToken.isEmpty()) {
+            authService.clearTokenCookies(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token has expired");
+        }
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No refresh token provided");
+        }
+        if (authService.isTokenValidFromCookie(accessToken)) {
+            try {
+                authService.refreshToken(refreshToken, response);
+                return ResponseEntity.ok("Tokens refreshed successfully");
+            } catch (RuntimeException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token: " + e.getMessage());
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token has expired");
+        }
+    }
+
+    @GetMapping("/authUser")
+    public ResponseEntity<?> getAuthUser(@CookieValue String accessToken) {
         try {
-            AuthResponse authResponse = authService.refreshToken(refreshToken);
-            return ResponseEntity.ok(authResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
+            User user = authService.getAuthUser(accessToken);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to get auth user: " + e.getMessage());
         }
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
+            authService.clearTokenCookies(response);
             return ResponseEntity.ok("Successfully logged out");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No authenticated session found");

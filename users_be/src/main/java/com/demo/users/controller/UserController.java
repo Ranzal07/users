@@ -30,12 +30,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/account")
-    public String account(Model model) {
-        model.addAttribute("authUser", userService.getAuthUser());
-        return "account";
-    }
-
     @PostMapping("/add")
     public String addUser(@ModelAttribute User user, @RequestParam Long level, @RequestParam Long position, Model model) {
         Employment employment = new Employment();

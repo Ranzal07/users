@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title>
-          {{ authUser.firstName }} {{ authUser.lastName }}
+          {{ authUser?.firstName }} {{ authUser?.lastName }}
         </q-toolbar-title>
         <q-btn to="/v1/dashboard/index" label="Dashboard" />
         <q-btn to="/v1/user/index" label="Users" />
@@ -24,23 +24,16 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { logoutUser } from 'src/service/authService';
-import * as userService from 'src/service/userService';
+import * as authService from 'src/service/authService';
 import { User } from 'src/model/types';
 export default defineComponent({
   setup() {
     const router = useRouter()
-    const users = ref<User[]>([]);
-    const authUser = ref<any>({});
+    const authUser = ref<User>();
 
     const getUsers = async () => {
       try {
-        const authData = localStorage.getItem('authData');
-        if (authData) {
-          authUser.value = JSON.parse(authData).user;
-        }
-        users.value = await userService.getAllUsers();
-        authUser.value = users.value.find((user: User) => user.id === authUser.value.id);
+        authUser.value = await authService.getAuthUser();
       } catch (error) {
         console.error('Failed to fetch users', error);
       }
@@ -49,7 +42,7 @@ export default defineComponent({
 
     const logout = async () => {
       try {
-        await logoutUser();
+        await authService.logoutUser();
         localStorage.removeItem('authData');
         router.push('/v1/auth/login');
       } catch (error) {

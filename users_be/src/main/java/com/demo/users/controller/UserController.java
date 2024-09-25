@@ -1,6 +1,7 @@
 package com.demo.users.controller;
 
 import com.demo.users.model.*;
+import com.demo.users.payload.UsersResponse;
 import com.demo.users.service.*;
 
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,8 @@ public class UserController {
     @GetMapping("/index")
     public ResponseEntity<?> getAllUsers() {
         try {
-            List<User> users = userService.getAllUsers();
-            return ResponseEntity.ok(users);
+            List<UsersResponse> usersResponse = userService.getAllUsers();
+            return ResponseEntity.ok(usersResponse);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to get all users: " + e.getMessage());
         }

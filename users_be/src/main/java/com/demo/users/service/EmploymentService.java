@@ -1,22 +1,24 @@
 package com.demo.users.service;
 
 import com.demo.users.model.*;
+import com.demo.users.payload.EmploymentsResponse;
 import com.demo.users.repository.*;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class EmploymentService {
     private final EmploymentRepository employmentRepository;
+    private final UserRepository userRepository;
 
-    public EmploymentService(EmploymentRepository employmentRepository) {
-        this.employmentRepository = employmentRepository;
-    }
-
-    public List<Employment> getAllEmployments() {
-        return employmentRepository.findAll();
+    public List<EmploymentsResponse> getAllEmployments() {
+        List<EmploymentsResponse> employmentsResponse = EmploymentsResponse.fromEmploymentList(userRepository.findAll());
+        return employmentsResponse;
     }
 
     public void addEmployment(Employment position) {

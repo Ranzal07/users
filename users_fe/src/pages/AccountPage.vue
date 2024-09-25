@@ -9,7 +9,6 @@
           :rows="rows"
           flat
           bordered
-          v-model:pagination="pagination"
           :rows-per-page-options="[]"
           :separator="'vertical'"
         >
@@ -54,7 +53,7 @@
                     color="secondary"
                     label="Cancel"
                     outline
-                    @click="cancelEdit(props.row)"
+                    @click="cancelEdit()"
                   />
                 </template>
               </q-td>
@@ -67,32 +66,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
+import * as dashboardService from 'src/service/dashboardService';
 import * as userService from 'src/service/userService';
-import { User } from 'src/model/types';
+import { AuthUserPayload } from 'src/payload/types';
 import { QTableColumn } from 'quasar';
+import { useRouter } from 'vue-router';
+import { isValidToken } from 'src/router/authGuard';
 
 export default defineComponent({
   setup() {
-    const users = ref<User[]>([]);
-    const authUser = ref<any[]>([]);
-    const editingRow = ref<User>();
-    const originalData = ref<User>();
+    const authUser = ref<AuthUserPayload[]>([]);
+    const editingRow = ref<AuthUserPayload>();
+    const originalData = ref<AuthUserPayload>();
+    const router = useRouter();
 
-    const getUsers = async () => {
-      try {
-        const authData = localStorage.getItem('authData');
-        if (authData) {
-          authUser.value = [JSON.parse(authData).user];
-        }
-        users.value = await userService.getAllUsers();
-        const foundUser = users.value.find((user: User) => user.id === authUser.value[0].id);
-        authUser.value = [foundUser];
-      } catch (error) {
-        console.error('Failed to fetch users', error);
-      }
+    const fetchAuthUser = async () => {
+      authUser.value = [await dashboardService.getAuthUser()];
     };
-    getUsers();
+    onMounted(() => {
+      fetchAuthUser();
+    });
 
     const columns: QTableColumn[] = [
       {
@@ -115,31 +109,24 @@ export default defineComponent({
       return colName === 'firstName' || colName === 'lastName' || colName === 'email';
     };
 
-    const startEditing = (userRow: User) => {
+    const startEditing = (userRow: AuthUserPayload) => {
       editingRow.value = userRow;
       originalData.value = { ...userRow };
     };
 
-    const isEditing = (userRow: User) => {
+    const isEditing = (userRow: AuthUserPayload) => {
       return editingRow.value === userRow;
     };
 
-    const updateRow = async (userRow: User) => {
-      if (editingRow.value === userRow) {
-        try {
-          await userService.updateAuthUser(userRow);
-          window.location.reload();
-        } catch (error) {
-          console.error('Failed to update userRow: ', error);
-        }
+    const updateRow = async (userRow: AuthUserPayload) => {
+      if (await isValidToken(router) && editingRow.value === userRow) {
+        await userService.updateAuthUser(userRow);
+        window.location.reload();
       }
     };
 
-    const cancelEdit = (userRow: User) => {
-      const index = authUser.value.findIndex((r: User) => r.id === userRow.id);
-      if (index !== -1 && originalData.value) {
-        authUser.value[index] = { ...originalData.value };
-      }
+    const cancelEdit = () => {
+      fetchAuthUser();
     };
 
     return {
@@ -150,10 +137,6 @@ export default defineComponent({
       isEditing,
       cancelEdit,
       isFieldEditable,
-      pagination: {
-        page: 1,
-        rowsPerPage: 10,
-      },
     };
   },
 });

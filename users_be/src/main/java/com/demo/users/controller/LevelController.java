@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.demo.users.model.*;
+import com.demo.users.payload.LevelsResponse;
 import com.demo.users.service.*;
 
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class LevelController {
     @GetMapping("/index")
     public ResponseEntity<?> getAllLevels() {
         try {
-            List<Level> levels = levelService.getAllLevels();
+            List<LevelsResponse> levels = levelService.getAllLevels();
             return ResponseEntity.ok(levels);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to get all levels: " + e.getMessage());

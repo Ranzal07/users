@@ -1,6 +1,7 @@
 package com.demo.users.service;
 
 import com.demo.users.model.Level;
+import com.demo.users.payload.LevelsResponse;
 import com.demo.users.repository.LevelRepository;
 
 import org.springframework.stereotype.Service;
@@ -15,8 +16,9 @@ public class LevelService {
         this.levelRepository = levelRepository;
     }
 
-    public List<Level> getAllLevels() {
-        return levelRepository.findAll();
+    public List<LevelsResponse> getAllLevels() {
+        List<LevelsResponse> levelsResponse = LevelsResponse.fromLevelList(levelRepository.findAll());
+        return levelsResponse;
     }
 
     public void addLevel(Level position) {

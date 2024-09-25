@@ -4,7 +4,7 @@ import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.demo.users.model.EmploymentRequest;
+import com.demo.users.payload.EmploymentRequest;
 import com.demo.users.service.*;
 
 import lombok.*;
@@ -23,7 +23,7 @@ public class EmploymentController {
     public ResponseEntity<?> getAllEmployments() {
         try {
             var response = new HashMap<String, Object>();
-            response.put("users", userService.getAllUsers());
+            response.put("employments", employmentService.getAllEmployments());
             response.put("levels", levelService.getAllLevels());
             response.put("positions", positionService.getAllPositions());
             return ResponseEntity.ok(response);
@@ -35,10 +35,10 @@ public class EmploymentController {
     @PutMapping("/update")
     public ResponseEntity<?> updateEmployment(@RequestBody EmploymentRequest requestData) {
         try {
-            var user = requestData.getUser();
-            var level = requestData.getLevel();
-            var position = requestData.getPosition();
-            employmentService.updateEmployment(userService.getUserById(user),levelService.getLevelById(level),positionService.getPositionById(position));
+            Long userId = requestData.getUserId();
+            Long levelId = requestData.getLevelId();
+            Long positionId = requestData.getPositionId();
+            employmentService.updateEmployment(userService.getUserById(userId),levelService.getLevelById(levelId),positionService.getPositionById(positionId));
             return ResponseEntity.ok("Employment updated successfully");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to update employment: " + e.getMessage());

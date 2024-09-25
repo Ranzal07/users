@@ -69,7 +69,7 @@
                     color="secondary"
                     label="Cancel"
                     outline
-                    @click="cancelEdit(props.row)"
+                    @click="cancelEdit()"
                   />
                 </template>
               </q-td>
@@ -82,37 +82,28 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import * as levelService from 'src/service/levelService';
 import { QTableColumn } from 'quasar';
-import { Level } from 'src/model/types';
+import { LevelsPayload } from 'src/payload/types';
+import { useRouter } from 'vue-router';
+import { isValidToken } from 'src/router/authGuard';
 
 export default defineComponent({
   setup() {
-    const levels = ref<Level[]>([]);
-    const editingRow = ref<Level>();
-    const originalData = ref<Level>();
+    const levels = ref<LevelsPayload[]>([]);
+    const editingRow = ref<LevelsPayload | null>();
+    const originalData = ref<LevelsPayload>();
+    const router = useRouter();
 
-    const getLevels = async () => {
-      try {
-        const response = await levelService.getAllLevels();
-        levels.value = response.map(
-          (level: Level, index: number) => {
-            return {
-              id: level.id,
-              lineNo: index + 1,
-              name: level.name,
-              salaryRate: level.salaryRate,
-              action: '',
-            };
-          }
-        );
-        levels.value.push({id: 0, name: '', salaryRate: null});
-      } catch (error) {
-        console.error('Failed to fetch levels', error);
-      }
+    const fetchLevels = async () => {
+      levels.value = await levelService.getAllLevels();
     };
-    getLevels();
+    onMounted(() => {
+      fetchLevels();
+    });
+
+    // levels.value.push({lineNo: null, id: 0, name: '', salaryRate: ''});
 
     const columns: QTableColumn[] = [
       { label: 'LINE NO', field: 'lineNo', name: 'lineNo', align: 'center' },
@@ -126,58 +117,42 @@ export default defineComponent({
       { label: 'ACTION', field: 'action', name: 'action', align: 'center' },
     ];
 
-    const isAddRow = (levelRow: Level) => {
+    const isAddRow = (levelRow: LevelsPayload) => {
       return levelRow.id === 0;
     };
 
-    const addRow = async (levelRow: Level) => {
-      try {
-        await levelService.addLevel(levelRow);
-        getLevels();
-      } catch (error) {
-        console.error('Failed to update positionRow: ', error);
-      }
+    const addRow = async (levelRow: LevelsPayload) => {
+      await levelService.addLevel(levelRow);
+      fetchLevels();
     };
-
 
     const isFieldEditable = (colName: string) => {
       return colName !== 'lineNo' && colName !== 'action';
     };
 
-    const startEditing = (levelRow: Level) => {
+    const startEditing = (levelRow: LevelsPayload) => {
       editingRow.value = levelRow;
       originalData.value = { ...levelRow };
     };
 
-    const isEditing = (levelRow: Level) => {
+    const isEditing = (levelRow: LevelsPayload) => {
       return editingRow.value === levelRow;
     };
 
-    const updateRow = async (levelRow: Level) => {
-      if (editingRow.value === levelRow) {
-        try {
-          await levelService.updateLevel(levelRow);
-          getLevels();
-        } catch (error) {
-          console.error('Failed to update levelRow: ', error);
-        }
+    const updateRow = async (levelRow: LevelsPayload) => {
+      if (await isValidToken(router) && editingRow.value === levelRow) {
+        await levelService.updateLevel(levelRow);
+        fetchLevels();
       }
     };
 
-    const deleteRow = async (levelRow: Level) => {
-      try {
-        await levelService.deleteLevel(levelRow);
-        getLevels();
-      } catch (error) {
-        console.error('Failed to delete levelRow: ', error);
-      }
+    const deleteRow = async (levelRow: LevelsPayload) => {
+      await levelService.deleteLevel(levelRow);
+      fetchLevels();
     };
 
-    const cancelEdit = (levelRow: Level) => {
-      const index = levels.value.findIndex((r: Level) => r.id === levelRow.id);
-      if (index !== -1 && originalData.value) {
-        levels.value[index] = { ...originalData.value };
-      }
+    const cancelEdit = () => {
+      fetchLevels();
     };
 
     return {
@@ -193,7 +168,7 @@ export default defineComponent({
       cancelEdit,
       pagination: {
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: levels.value.length,
       },
     };
   },

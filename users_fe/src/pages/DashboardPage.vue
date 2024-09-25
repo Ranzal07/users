@@ -3,30 +3,25 @@
     <div class="menu">
       <!-- Welcome message -->
       <h4 class="text-center">
-        Welcome, {{ authUser?.firstName }} {{ authUser?.lastName }} -
-        {{ authUser?.employment?.level?.name }}
-        {{ authUser?.employment?.position?.name }}
+        Welcome, {{ authUser?.firstName + " " + authUser?.lastName }} - {{ authUser?.jobTitle }}
       </h4>
     </div>
   </q-page>
 </template>
 
 <script lang="ts">
-import { User } from 'src/model/types';
-import { defineComponent, ref} from 'vue';
-import * as authService from 'src/service/authService';
+import { AuthUserPayload } from 'src/payload/types';
+import { defineComponent, onMounted, ref} from 'vue';
+import * as dashboardService from 'src/service/dashboardService';
 export default defineComponent({
   setup() {
-    const authUser = ref<User>();
-
-    const getUsers = async () => {
-      try {
-        authUser.value = await authService.getAuthUser();
-      } catch (error) {
-        console.error('Failed to fetch users', error);
-      }
+    const authUser = ref<AuthUserPayload>();
+    const fetchAuthUser = async () => {
+      authUser.value = await dashboardService.getAuthUser();
     };
-    getUsers();
+    onMounted(() => {
+      fetchAuthUser();
+    });
 
     return {
       authUser,

@@ -4,10 +4,9 @@ const CONTROLLER = 'dashboard';
 
 export const getAuthUser = async () => {
   try {
-    const response = await api.get(`${CONTROLLER}/index`);
+    const response = await api.get(`${CONTROLLER}/authUser`);
     return response.data;
-  } catch (error) {
-    console.error('Error dashboard:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('Error getting auth user: ', error.message);
   }
 };

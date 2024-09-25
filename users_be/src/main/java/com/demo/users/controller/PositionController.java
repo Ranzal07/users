@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.demo.users.model.*;
+import com.demo.users.payload.PositionsResponse;
 import com.demo.users.service.*;
 
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,8 @@ public class PositionController {
     @GetMapping("/index")
     public ResponseEntity<?> getAllPositions() {
         try {
-            List<Position> positions = positionService.getAllPositions();
-            return ResponseEntity.ok(positions);
+            List<PositionsResponse> positionsResponse = positionService.getAllPositions();
+            return ResponseEntity.ok(positionsResponse);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to get all positions: " + e.getMessage());
         }

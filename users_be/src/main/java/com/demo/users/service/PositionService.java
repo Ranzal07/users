@@ -1,22 +1,23 @@
 package com.demo.users.service;
 
 import com.demo.users.model.Position;
+import com.demo.users.payload.PositionsResponse;
 import com.demo.users.repository.PositionRepository;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class PositionService {
     private final PositionRepository positionRepository;
 
-    public PositionService(PositionRepository positionRepository) {
-        this.positionRepository = positionRepository;
-    }
-
-    public List<Position> getAllPositions() {
-        return positionRepository.findAll();
+     public List<PositionsResponse> getAllPositions() {
+        List<PositionsResponse> positionsResponse = PositionsResponse.fromPositionList(positionRepository.findAll());
+        return positionsResponse;
     }
 
     public void addPosition(Position position) {

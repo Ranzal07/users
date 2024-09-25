@@ -1,4 +1,4 @@
-package com.demo.users.model;
+package com.demo.users.payload;
 import lombok.*;
 
 @Data

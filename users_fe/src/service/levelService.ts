@@ -1,5 +1,5 @@
 import { api } from 'src/boot/axios';
-import { Level } from 'src/model/types';
+import { LevelsPayload } from 'src/payload/types';
 
 const CONTROLLER = 'level';
 
@@ -13,32 +13,29 @@ export const getAllLevels = async () => {
   }
 };
 
-export const addLevel = async (level: Level) => {
+export const addLevel = async (level: LevelsPayload) => {
   try {
     const response = await api.post(`${CONTROLLER}/add`, level);
-    return response.data;
-  } catch (error) {
-    console.error('Error adding level:', error);
-    throw error;
+    console.log(response.data);
+  } catch (error: any) {
+    console.error('Error adding level:', error.message);
   }
 };
 
-export const updateLevel = async (level: Level) => {
+export const updateLevel = async (level: LevelsPayload) => {
   try {
     const response = await api.put(`${CONTROLLER}/update`, level);
-    return response.data;
-  } catch (error) {
-    console.error('Error updating level:', error);
-    throw error;
+    console.log(response.data);
+  } catch (error: any) {
+    console.error('Error updating level:', error.message);
   }
 };
 
-export const deleteLevel = async (level: Level) => {
+export const deleteLevel = async (level: LevelsPayload) => {
   try {
     const response = await api.delete(`${CONTROLLER}/delete/${level.id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting level:', error);
-    throw error;
+    console.log(response.data);
+  } catch (error: any) {
+    console.error('Error deleting level:', error.message);
   }
 };

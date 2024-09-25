@@ -39,43 +39,17 @@
 import { defineComponent, ref } from 'vue';
 import * as userService from 'src/service/userService';
 import { QTableColumn } from 'quasar';
-import { User, UserRow } from 'src/model/types';
+import { UsersPayload } from 'src/payload/types';
 
 export default defineComponent({
   setup() {
-    const users = ref<UserRow[]>([]);
-
-    const getUsers = async () => {
-      try {
-        const response = await userService.getAllUsers();
-        users.value = response.map(
-          (user: User, index: number):UserRow => {
-            return {
-              id: user.id,
-              lineNo: index + 1,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              email: user.email,
-              jobTitle: `${user.employment.level.name} ${user.employment.position.name}`
-            };
-          }
-        );
-      } catch (error) {
-        console.error('Failed to fetch users', error);
-      }
-    };
-    getUsers();
+    const users = ref<UsersPayload[]>([]);
+    users.value =  userService.users;
 
     const columns: QTableColumn[] = [
       { label: 'LINE NO', field: 'lineNo', name: 'lineNo', align: 'center' },
       { label: 'FIRST NAME', field: 'firstName', name: 'firstName', align: 'center' },
       { label: 'LAST NAME', field: 'lastName', name: 'lastName', align: 'center' },
-      {
-        label: 'EMAIL',
-        field: 'email',
-        name: 'email',
-        align: 'center',
-      },
       {
         label: 'JOB TITLE',
         field: 'jobTitle',
@@ -91,11 +65,10 @@ export default defineComponent({
     return {
       rows: users,
       columns,
-      getUsers,
       isFieldEditable,
       pagination: {
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: users.value.length,
       },
     };
   },

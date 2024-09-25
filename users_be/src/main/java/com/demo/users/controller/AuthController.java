@@ -1,8 +1,7 @@
 package com.demo.users.controller;
 
+import com.demo.users.payload.AuthRequest;
 import com.demo.users.service.AuthService;
-import com.demo.users.model.AuthRequest;
-import com.demo.users.model.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,16 +52,6 @@ public class AuthController {
             }
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token has expired");
-        }
-    }
-
-    @GetMapping("/authUser")
-    public ResponseEntity<?> getAuthUser(@CookieValue String accessToken) {
-        try {
-            User user = authService.getAuthUser(accessToken);
-            return ResponseEntity.ok(user);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to get auth user: " + e.getMessage());
         }
     }
 

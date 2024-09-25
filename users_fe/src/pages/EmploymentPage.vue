@@ -65,7 +65,7 @@
                     color="secondary"
                     label="Cancel"
                     outline
-                    @click="cancelEdit(props.row)"
+                    @click="cancelEdit()"
                   />
                 </template>
               </q-td>
@@ -78,49 +78,31 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import * as employmentService from 'src/service/employmentService';
-import { User, EmploymentRow, Level, Position } from 'src/model/types';
-import * as util from 'src/utils/util';
+import { EmploymentsPayload, LevelsPayload, PositionsPayload } from 'src/payload/types';
 import { QTableColumn } from 'quasar';
+import { useRouter } from 'vue-router';
+import { isValidToken } from 'src/router/authGuard';
 
 export default defineComponent({
   setup() {
-    const users = ref<EmploymentRow[]>([]);
-    const levels = ref<Level[]>([]);
-    const positions = ref<Position[]>([]);
-    const editingRow = ref<EmploymentRow>();
-    const originalData = ref<EmploymentRow>();
+    const employments = ref<EmploymentsPayload[]>([]);
+    const levels = ref<LevelsPayload[]>([]);
+    const positions = ref<PositionsPayload[]>([]);
+    const editingRow = ref<EmploymentsPayload>();
+    const originalData = ref<EmploymentsPayload>();
+    const router = useRouter();
 
-    const getEmployments = async () => {
-      try {
-        const response = await employmentService.getAllEmployments();
-        users.value = response.users.map(
-          (user: User, index: number):EmploymentRow => {
-            return {
-              id: user.id,
-              lineNo: index + 1,
-              fullName: `${user.firstName} ${user.lastName}`,
-              level: user.employment?.level,
-              position: user.employment?.position,
-              salary: util.calculateSalary(user.employment),
-              status: user.employment?.status || 'Employed',
-            };
-          }
-        );
-        levels.value = response.levels.map((level: Level) => ({
-          id: level.id,
-          name: level.name,
-        }));
-        positions.value = response.positions.map((position: Position) => ({
-          id: position.id,
-          name: position.name,
-        }));
-      } catch (error) {
-        console.error('Failed to fetch Employments: ', error);
-      }
+    const fetchEmployments = async () => {
+      const response = await employmentService.getAllEmployments();
+      employments.value = response.employments;
+      levels.value = response.levels;
+      positions.value = response.positions;
     };
-    getEmployments();
+    onMounted(() => {
+      fetchEmployments();
+    });
 
     const columns: QTableColumn[] = [
       { label: 'LINE NO', field: 'lineNo', name: 'lineNo', align: 'center' },
@@ -137,7 +119,7 @@ export default defineComponent({
         name: 'position',
         align: 'center',
       },
-      { label: 'SALARY', field: 'salary', name: 'salary', align: 'center' },
+      { label: 'SALARY', field: 'salary', name: 'salary', align: 'center', format: (val) => `${val}%` },
       { label: 'STATUS', field: 'status', name: 'status', align: 'center' },
       { label: 'ACTION', field: '', name: 'action', align: 'center' },
     ];
@@ -146,50 +128,44 @@ export default defineComponent({
       return colName === 'level' || colName === 'position';
     };
 
-    const startEditing = (userRow: EmploymentRow) => {
-      editingRow.value = userRow;
-      originalData.value = { ...userRow };
+    const startEditing = (employmentRow: EmploymentsPayload) => {
+      editingRow.value = employmentRow;
+      originalData.value = { ...employmentRow };
     };
 
-    const isEditing = (userRow: EmploymentRow) => {
-      return editingRow.value === userRow;
+    const isEditing = (employmentRow: EmploymentsPayload) => {
+      return editingRow.value === employmentRow;
     };
 
-    const updateRow = async (userRow: EmploymentRow) => {
-      if (editingRow.value === userRow) {
-        try {
-          const updatedData = {
-            user: userRow.id,
-            level: userRow.level.id,
-            position: userRow.position.id,
-          };
-          await employmentService.updateEmployment(updatedData);
-          getEmployments();
-        } catch (error) {
-          console.error('Failed to update userRow: ', error);
-        }
+    const updateRow = async (employmentRow: EmploymentsPayload) => {
+      if (await isValidToken(router) && editingRow.value === employmentRow) {
+        const updatedData = {
+          userId: employmentRow.id,
+          levelId: employmentRow.level.id,
+          positionId: employmentRow.position.id,
+        };
+        await employmentService.updateEmployment(updatedData);
+        fetchEmployments();
       }
     };
 
-    const deleteRow = (userRow: EmploymentRow) => {
-      users.value = users.value.filter((r) => r.id !== userRow.id);
+    const deleteRow = (employmentRow: EmploymentsPayload) => {
+      employments.value = employments.value.filter((r) => r.id !== employmentRow.id);
+      fetchEmployments();
     };
 
-    const cancelEdit = (userRow: EmploymentRow) => {
-      const index = users.value.findIndex((r: EmploymentRow) => r.id === userRow.id);
-      if (index !== -1 && originalData.value) {
-        users.value[index] = { ...originalData.value };
-      }
+    const cancelEdit = () => {
+      fetchEmployments();
     };
 
     const getSelectOptions = (colName: string) => {
       if (colName === 'level') {
-        return levels.value.map((level: Level) => ({
+        return levels.value.map((level: LevelsPayload) => ({
           label: level.name,
           value: level.id
         }));
       } else if (colName === 'position') {
-        return positions.value.map((position: Position) => ({
+        return positions.value.map((position: PositionsPayload) => ({
           label: position.name,
           value: position.id
         }));
@@ -198,7 +174,7 @@ export default defineComponent({
     };
 
     return {
-      rows: users,
+      rows: employments,
       columns,
       startEditing,
       updateRow,
@@ -209,7 +185,7 @@ export default defineComponent({
       getSelectOptions,
       pagination: {
         page: 1,
-        rowsPerPage: 10, // Set the fixed number of userRows per page to 10
+        rowsPerPage: employments.value.length,
       },
     };
   },

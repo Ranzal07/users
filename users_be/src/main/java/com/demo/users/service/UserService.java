@@ -1,6 +1,7 @@
 package com.demo.users.service;
 
 import com.demo.users.model.*;
+import com.demo.users.payload.UsersResponse;
 import com.demo.users.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -9,14 +10,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UsersResponse> getAllUsers() {
+        List<UsersResponse> usersResponse = UsersResponse.fromUserList(userRepository.findAll());
+        return usersResponse;
     }
 
     public void addUser(User user) {

@@ -13,9 +13,9 @@ export const getAllEmployments = async () => {
 };
 
 export const updateEmployment = async (data: {
-  user: number;
-  level: number;
-  position: number;
+  userId: number;
+  levelId: number;
+  positionId: number;
 }) => {
   try {
     const response = await api.put(`${CONTROLLER}/update`, data);

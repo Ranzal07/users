@@ -81,7 +81,7 @@ export default defineComponent({
         router.push('/v1/dashboard/index');
       } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
-          errorMessage.value = error.response.data || 'Invalid username or password.';
+          errorMessage.value = error.response.data;
         } else if (error instanceof Error) {
           errorMessage.value = error.message;
         } else {

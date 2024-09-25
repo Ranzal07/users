@@ -1,22 +1,13 @@
 import { api } from 'src/boot/axios';
+import router from 'src/router';
 
 const CONTROLLER = 'auth';
 
 export const authenticateUser = async (username: string, password: string) => {
   try {
     await api.post(`${CONTROLLER}/authenticate`, { username, password });
-  } catch (error) {
-    console.error('Error login:', error);
-    throw error;
-  }
-};
-
-export const getAuthUser = async () => {
-  try {
-    const response = await api.get(`${CONTROLLER}/authUser`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching the Auth users:', error);
+  } catch (error: any) {
+    console.error('Error login: ', error.message);
     throw error;
   }
 };
@@ -24,10 +15,10 @@ export const getAuthUser = async () => {
 export const logoutUser = async () => {
   try {
     const response = await api.get(`${CONTROLLER}/logout`);
-    localStorage.removeItem('authData');
-    return response.data;
-  } catch (error) {
-    console.error('Error logout:', error);
+    console.log(response.data);
+    router.push('/v1/auth/login');
+  } catch (error: any) {
+    console.error('Error logout: ', error.message);
     throw error;
   }
 };

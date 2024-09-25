@@ -4,6 +4,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import com.demo.users.model.*;
+import com.demo.users.payload.AuthRequest;
+import com.demo.users.payload.AuthUserResponse;
 import com.demo.users.repository.UserRepository;
 import com.demo.users.utils.JwtUtil;
 
@@ -46,9 +48,11 @@ public class AuthService {
         }
     }
 
-    public User getAuthUser(String token) {
+    public AuthUserResponse getAuthUser(String token) {
         String username = jwtUtil.extractUsername(token);
-        return userRepository.findByUsername(username).orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
+        AuthUserResponse authUserResponse = AuthUserResponse.fromUser(user);
+        return authUserResponse;
     }
 
     public void clearTokenCookies(HttpServletResponse response) {

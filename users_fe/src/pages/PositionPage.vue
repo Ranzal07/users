@@ -69,7 +69,7 @@
                     color="secondary"
                     label="Cancel"
                     outline
-                    @click="cancelEdit(props.row)"
+                    @click="cancelEdit()"
                   />
                 </template>
               </q-td>
@@ -82,38 +82,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import * as positionService from 'src/service/positionService';
 import { QTableColumn } from 'quasar';
-import { Position } from 'src/model/types';
+import { PositionsPayload } from 'src/payload/types';
+import { isValidToken } from 'src/router/authGuard';
+import { useRouter } from 'vue-router';
+
 
 export default defineComponent({
   setup() {
-    const positions = ref<Position[]>([]);
-    const editingRow = ref<Position>();
-    const originalData = ref<Position>();
+    const positions = ref<PositionsPayload[]>([]);
+    const editingRow = ref<PositionsPayload>();
+    const originalData = ref<PositionsPayload>();
+    const router = useRouter();
 
-    const getPositions = async () => {
-      try {
-        const response = await positionService.getAllPositions();
-        positions.value = response.map(
-          (position: Position, index: number) => {
-            return {
-              id: position.id,
-              lineNo: index + 1,
-              name: position.name,
-              salary: position.salary?.toLocaleString(),
-              role: position.role,
-              action: '',
-            };
-          }
-        );
-        positions.value.push({id: 0, name: '', salary: null, role: ''});
-      } catch (error) {
-        console.error('Failed to fetch positions', error);
-      }
+    const fetchPositions = async () => {
+      positions.value = await positionService.getAllPositions();
     };
-    getPositions();
+    onMounted(() => {
+      fetchPositions();
+    });
+
+    // positions.value.push({lineNo: null, id: 0, name: '', salary: null, role: ''});
 
     const columns: QTableColumn[] = [
       { label: 'LINE NO', field: 'lineNo', name: 'lineNo', align: 'center' },
@@ -133,59 +124,42 @@ export default defineComponent({
       { label: 'ACTION', field: 'action', name: 'action', align: 'center' },
     ];
 
-    const isAddRow = (positionRow: Position) => {
+    const isAddRow = (positionRow: PositionsPayload) => {
       return positionRow.id === 0;
     };
 
-    const addRow = async (positionRow: Position) => {
-      try {
-        await positionService.addPosition(positionRow);
-        getPositions();
-      } catch (error) {
-        console.error('Failed to update positionRow: ', error);
-      }
+    const addRow = async (positionRow: PositionsPayload) => {
+      await positionService.addPosition(positionRow);
+      fetchPositions();
     };
 
     const isFieldEditable = (colName: string) => {
       return colName !== 'lineNo' && colName !== 'action';
     };
 
-    const startEditing = (positionRow: Position) => {
+    const startEditing = (positionRow: PositionsPayload) => {
       editingRow.value = positionRow;
       originalData.value = { ...positionRow };
     };
 
-    const isEditing = (positionRow: Position) => {
+    const isEditing = (positionRow: PositionsPayload) => {
       return editingRow.value === positionRow;
     };
 
-    const updateRow = async (positionRow: Position) => {
-      if (editingRow.value === positionRow) {
-        try {
-          await positionService.updatePosition(positionRow);
-          getPositions();
-        } catch (error) {
-          console.error('Failed to update positionRow: ', error);
-        }
+    const updateRow = async (positionRow: PositionsPayload) => {
+      if (await isValidToken(router) && editingRow.value === positionRow) {
+        await positionService.updatePosition(positionRow);
+        fetchPositions();
       }
     };
 
-    const deleteRow = async (positionRow: Position) => {
-      try {
-        await positionService.deletePosition(positionRow);
-        getPositions();
-      } catch (error) {
-        console.error('Failed to delete positionRow: ', error);
-      }
+    const deleteRow = async (positionRow: PositionsPayload) => {
+      await positionService.deletePosition(positionRow);
+      fetchPositions();
     };
 
-    const cancelEdit = (positionRow: Position) => {
-      const index = positions.value.findIndex(
-        (r: Position) => r.id === positionRow.id
-      );
-      if (index !== -1 && originalData.value) {
-        positions.value[index] = { ...originalData.value };
-      }
+    const cancelEdit = () => {
+      fetchPositions();
     };
 
     return {
@@ -201,7 +175,7 @@ export default defineComponent({
       cancelEdit,
       pagination: {
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: positions.value.length,
       },
     };
   },

@@ -15,8 +15,15 @@ import java.util.List;
 public class PositionService {
     private final PositionRepository positionRepository;
 
-     public List<PositionsResponse> getAllPositions() {
+    public List<PositionsResponse> getAllPositions() {
         List<PositionsResponse> positionsResponse = PositionsResponse.fromPositionList(positionRepository.findAll());
+        PositionsResponse emptyPosition = PositionsResponse.builder()
+            .id(0L)
+            .name(null)
+            .salary(null)
+            .role(null)
+            .build();
+        positionsResponse.add(emptyPosition);
         return positionsResponse;
     }
 

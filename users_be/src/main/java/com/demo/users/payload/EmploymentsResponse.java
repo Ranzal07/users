@@ -20,17 +20,18 @@ public class EmploymentsResponse {
     private String fullName;
     private Level level;
     private Position position;
-    private float salary;
+    private String salary;
     private String status;
 
     public static EmploymentsResponse fromEmployment(User user, Long index) {
+        String formattedSalary = String.format("%,.2f", (user.getEmployment().getPosition().getSalary() * user.getEmployment().getLevel().getSalaryRate()));
         return EmploymentsResponse.builder()
             .lineNo(index)
             .id(user.getId())
             .fullName(user.getFirstName() + " " + user.getLastName())
             .level(user.getEmployment().getLevel())
             .position(user.getEmployment().getPosition())
-            .salary(user.getEmployment().getPosition().getSalary() * user.getEmployment().getLevel().getSalaryRate())
+            .salary(formattedSalary)
             .status(user.getEmployment().getStatus())
             .build();
     }

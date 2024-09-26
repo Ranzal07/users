@@ -18,6 +18,12 @@ public class LevelService {
 
     public List<LevelsResponse> getAllLevels() {
         List<LevelsResponse> levelsResponse = LevelsResponse.fromLevelList(levelRepository.findAll());
+        LevelsResponse emptyLevel = LevelsResponse.builder()
+            .id(0L)
+            .name(null)
+            .salaryRate(null)
+            .build();
+        levelsResponse.add(emptyLevel);
         return levelsResponse;
     }
 

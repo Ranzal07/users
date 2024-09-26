@@ -7,7 +7,7 @@ export interface AuthUserPayload {
 }
 
 export interface UsersPayload {
-  lineNo: number | undefined;
+  lineNo: number;
   id: number;
   firstName: string;
   lastName: string;
@@ -20,22 +20,22 @@ export interface EmploymentsPayload {
   fullName: string;
   level: LevelsPayload;
   position: PositionsPayload;
-  salary: string;
+  salary: number;
   status: string;
 }
 
 export interface LevelsPayload {
-  lineNo: number | null;
+  lineNo: number;
   id: number;
   name: string;
-  salaryRate: number | string;
+  salaryRate: number;
 }
 
 export interface PositionsPayload {
-  lineNo: number | null;
+  lineNo: number;
   id: number;
   name: string;
-  salary: number | null;
+  salary: number;
   role: string;
 }
 

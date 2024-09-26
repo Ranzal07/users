@@ -15,7 +15,7 @@ public class LevelsResponse {
     private Long lineNo;
     private Long id;
     private String name;
-    private float salaryRate;
+    private Float salaryRate;
 
     public static LevelsResponse fromLevel(Level level, Long index) {
         return LevelsResponse.builder()

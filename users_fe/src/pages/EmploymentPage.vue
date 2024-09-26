@@ -97,8 +97,8 @@ export default defineComponent({
     const fetchEmployments = async () => {
       const response = await employmentService.getAllEmployments();
       employments.value = response.employments;
-      levels.value = response.levels;
-      positions.value = response.positions;
+      levels.value = response.levels.filter((level: LevelsPayload) => level.id !== 0);
+      positions.value = response.positions.filter((position: PositionsPayload) => position.id !== 0);
     };
     onMounted(() => {
       fetchEmployments();

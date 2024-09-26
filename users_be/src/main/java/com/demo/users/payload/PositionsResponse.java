@@ -15,15 +15,16 @@ public class PositionsResponse {
     private Long lineNo;
     private Long id;
     private String name;
-    private float salary;
+    private String salary;
     private String role;
 
     public static PositionsResponse fromPosition(Position position, Long i) {
+        String formattedSalary = String.format("%,.2f", position.getSalary());
         return PositionsResponse.builder()
             .lineNo(i)
             .id(position.getId())
             .name(position.getName())
-            .salary(position.getSalary())
+            .salary(formattedSalary)
             .role(position.getRole())
             .build();
     }

@@ -104,8 +104,6 @@ export default defineComponent({
       fetchPositions();
     });
 
-    // positions.value.push({lineNo: null, id: 0, name: '', salary: null, role: ''});
-
     const columns: QTableColumn[] = [
       { label: 'LINE NO', field: 'lineNo', name: 'lineNo', align: 'center' },
       { label: 'NAME', field: 'name', name: 'name', align: 'center' },

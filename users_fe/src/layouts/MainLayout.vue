@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title>
-          {{ authUser?.firstName + " " + authUser?.lastName }}
+          {{ authUser?.firstName + " " + authUser?.lastName }} - {{ authUser?.jobTitle }}
         </q-toolbar-title>
         <q-btn to="/v1/dashboard/index" label="Dashboard" />
         <q-btn to="/v1/user/index" label="Users" />
@@ -35,7 +35,7 @@ export default defineComponent({
     onMounted(() => {
       fetchAuthUser();
     });
-    
+
     const logout = async () => {
       try {
         await authService.logoutUser();

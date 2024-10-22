@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import * as userService from 'src/service/userService';
 import { QTableColumn } from 'quasar';
 import { UsersPayload } from 'src/payload/types';
@@ -44,7 +44,12 @@ import { UsersPayload } from 'src/payload/types';
 export default defineComponent({
   setup() {
     const users = ref<UsersPayload[]>([]);
-    users.value =  userService.users;
+    const fetchUsers = async () => {
+      users.value = await userService.getAllUsers();
+    }
+    onMounted(() => {
+      fetchUsers();
+    });
 
     const columns: QTableColumn[] = [
       { label: 'LINE NO', field: 'lineNo', name: 'lineNo', align: 'center' },

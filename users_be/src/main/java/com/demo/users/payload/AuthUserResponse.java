@@ -14,6 +14,7 @@ public class AuthUserResponse {
     private String lastName;
     private String email;
     private String jobTitle;
+    private Boolean canEdit;
 
     public static AuthUserResponse fromUser(User user) {
         return AuthUserResponse.builder()
@@ -22,6 +23,17 @@ public class AuthUserResponse {
             .lastName(user.getLastName())
             .email(user.getEmail())
             .jobTitle(user.getEmployment().getLevel().getName() + " " + user.getEmployment().getPosition().getName())
+            .canEdit(canEditAuthUser(user))
             .build();
+    }
+
+    private static Boolean canEditAuthUser(User user){
+        Boolean canEdit = false;
+        if("President".equals(user.getEmployment().getPosition().getName()) ||
+            "HR".equals(user.getEmployment().getPosition().getName())
+            ){
+            canEdit = true;
+        }
+        return canEdit;
     }
 }

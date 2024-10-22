@@ -16,8 +16,9 @@ public class EmploymentService {
     private final EmploymentRepository employmentRepository;
     private final UserRepository userRepository;
 
-    public List<EmploymentsResponse> getAllEmployments() {
-        List<EmploymentsResponse> employmentsResponse = EmploymentsResponse.fromEmploymentList(userRepository.findAll());
+    public List<EmploymentsResponse> getAllEmployments(Long authUserId) {
+        User authUser = userRepository.findById(authUserId).orElse(null);
+        List<EmploymentsResponse> employmentsResponse = EmploymentsResponse.fromEmploymentList(userRepository.findAll(), authUser);
         return employmentsResponse;
     }
 

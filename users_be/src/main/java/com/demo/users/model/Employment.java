@@ -6,6 +6,9 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "employment")
 public class Employment {
     @Id

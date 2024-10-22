@@ -23,8 +23,8 @@ public class EmploymentsResponse {
     private String salary;
     private String status;
 
-    public static EmploymentsResponse fromEmployment(User user, Long index) {
-        String formattedSalary = String.format("%,.2f", (user.getEmployment().getPosition().getSalary() * user.getEmployment().getLevel().getSalaryRate()));
+    public static EmploymentsResponse fromEmployment(User user, Long index, User authUser) {
+        String formattedSalary = getSalary(user, authUser);
         return EmploymentsResponse.builder()
             .lineNo(index)
             .id(user.getId())
@@ -36,9 +36,24 @@ public class EmploymentsResponse {
             .build();
     }
 
-    public static List<EmploymentsResponse> fromEmploymentList(List<User> users) {
+    public static List<EmploymentsResponse> fromEmploymentList(List<User> users, User authUser) {
         return IntStream.range(0, users.size())
-            .mapToObj(i -> fromEmployment(users.get(i), (long) i + 1))
+            .mapToObj(i -> fromEmployment(users.get(i), (long) i + 1, authUser))
             .collect(Collectors.toList());
+    }
+
+    public static String getSalary(User user, User authUser){
+        String salary = "CONFIDENTIAL";
+
+        if (user.equals(authUser) || 
+            ("President".equals(authUser.getEmployment().getPosition().getName()) ||
+            ("HR".equals(authUser.getEmployment().getPosition().getName()) && !"President".equals(user.getEmployment().getPosition().getName()))
+            )
+        ) {
+            salary = String.format("%,.2f", 
+                user.getEmployment().getPosition().getSalary() * 
+                user.getEmployment().getLevel().getSalaryRate());
+        }
+        return salary;
     }
 }

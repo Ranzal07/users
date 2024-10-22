@@ -1,9 +1,20 @@
+export interface NewUser {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export interface AuthUserPayload {
+  lineNo: number;
   id: number;
   firstName: string;
   lastName: string;
   email: string;
   jobTitle: string;
+  canEdit: boolean;
 }
 
 export interface UsersPayload {
@@ -20,7 +31,7 @@ export interface EmploymentsPayload {
   fullName: string;
   level: LevelsPayload;
   position: PositionsPayload;
-  salary: number;
+  salary: number | string;
   status: string;
 }
 

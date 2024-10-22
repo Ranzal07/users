@@ -1,20 +1,18 @@
 import { api } from 'src/boot/axios';
-import { User } from 'src/payload/types';
+import { UsersPayload } from 'src/payload/types';
 
 const CONTROLLER = 'user';
 
-let users;
-
-const getAllUsers = async () => {
+export const getAllUsers = async () => {
   try {
     const response = await api.get(`${CONTROLLER}/index`);
-    users = response.data;
+    return response.data;
   } catch (error) {
     console.error('Error fetching users: ', error);
   }
 };
 
-export const addUser = async (user: User) => {
+export const addUser = async (user: UsersPayload) => {
   try {
     const response = await api.post(`${CONTROLLER}/add`, user);
     return response.data;
@@ -24,7 +22,7 @@ export const addUser = async (user: User) => {
   }
 };
 
-export const updateAuthUser = async (user: User) => {
+export const updateAuthUser = async (user: UsersPayload) => {
   try {
     const response = await api.put(`${CONTROLLER}/update`, user);
     return response.data;
@@ -33,7 +31,7 @@ export const updateAuthUser = async (user: User) => {
   }
 };
 
-export const deleteUser = async (user: User) => {
+export const deleteUser = async (user: UsersPayload) => {
   try {
     const response = await api.delete(`${CONTROLLER}/delete/${user.id}`);
     return response.data;
@@ -41,7 +39,3 @@ export const deleteUser = async (user: User) => {
     console.error('Error deleting user: ', error.message);
   }
 };
-
-await getAllUsers();
-
-export { users };

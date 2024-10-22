@@ -20,10 +20,10 @@ public class EmploymentController {
     private final PositionService positionService;
 
     @GetMapping("/index")
-    public ResponseEntity<?> getAllEmployments() {
+    public ResponseEntity<?> getAllEmployments(@RequestParam Long authUserId) {
         try {
             var response = new HashMap<String, Object>();
-            response.put("employments", employmentService.getAllEmployments());
+            response.put("employments", employmentService.getAllEmployments(authUserId));
             response.put("levels", levelService.getAllLevels());
             response.put("positions", positionService.getAllPositions());
             return ResponseEntity.ok(response);

@@ -1,7 +1,17 @@
 import { api } from 'src/boot/axios';
+import { NewUser } from 'src/payload/types';
 import router from 'src/router';
 
 const CONTROLLER = 'auth';
+
+export const addNewUser = async (newUser: NewUser) => {
+  try {
+    await api.post(`${CONTROLLER}/signup`, newUser);
+  } catch (error: any) {
+    console.error('Error signup: ', error.message);
+    throw error;
+  }
+};
 
 export const authenticateUser = async (username: string, password: string) => {
   try {

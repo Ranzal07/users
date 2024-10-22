@@ -24,6 +24,7 @@
                   'action-col': col.name === 'action',
                   'dynamic-col': col.name !== 'lineNo' && col.name !== 'action',
                 }"
+                :style="col.name === 'salary' ? { color: props.row.salary === 'CONFIDENTIAL' ? 'red' : '' } : {}"
               >
                 <q-select
                   v-if="isFieldEditable(col.name) && isEditing(props.row)"
@@ -79,14 +80,16 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue';
+import * as dashboardService from 'src/service/dashboardService';
 import * as employmentService from 'src/service/employmentService';
-import { EmploymentsPayload, LevelsPayload, PositionsPayload } from 'src/payload/types';
-import { QTableColumn } from 'quasar';
+import { AuthUserPayload, EmploymentsPayload, LevelsPayload, PositionsPayload } from 'src/payload/types';
 import { useRouter } from 'vue-router';
 import { isValidToken } from 'src/router/authGuard';
+import { QTableColumn } from 'quasar';
 
 export default defineComponent({
   setup() {
+    const authUser = ref<AuthUserPayload>();
     const employments = ref<EmploymentsPayload[]>([]);
     const levels = ref<LevelsPayload[]>([]);
     const positions = ref<PositionsPayload[]>([]);
@@ -94,17 +97,7 @@ export default defineComponent({
     const originalData = ref<EmploymentsPayload>();
     const router = useRouter();
 
-    const fetchEmployments = async () => {
-      const response = await employmentService.getAllEmployments();
-      employments.value = response.employments;
-      levels.value = response.levels.filter((level: LevelsPayload) => level.id !== 0);
-      positions.value = response.positions.filter((position: PositionsPayload) => position.id !== 0);
-    };
-    onMounted(() => {
-      fetchEmployments();
-    });
-
-    const columns: QTableColumn[] = [
+    const columns = ref<QTableColumn[]>([
       { label: 'LINE NO', field: 'lineNo', name: 'lineNo', align: 'center' },
       {
         label: 'FULL NAME',
@@ -119,10 +112,27 @@ export default defineComponent({
         name: 'position',
         align: 'center',
       },
-      { label: 'SALARY', field: 'salary', name: 'salary', align: 'center', format: (val) => `${val}%` },
+      { label: 'SALARY', field: 'salary', name: 'salary', align: 'center' },
       { label: 'STATUS', field: 'status', name: 'status', align: 'center' },
-      { label: 'ACTION', field: '', name: 'action', align: 'center' },
-    ];
+    ]);
+
+    const fetchEmployments = async () => {
+      authUser.value = await dashboardService.getAuthUser()
+      const response = await employmentService.getAllEmployments(authUser.value?.id);
+      employments.value = response.employments;
+      levels.value = response.levels.filter((level: LevelsPayload) => level.id !== 0);
+      positions.value = response.positions.filter((position: PositionsPayload) => position.id !== 0);
+
+      if (authUser.value?.canEdit && !columns.value.some(col => col.name === 'action')) {
+        columns.value.push({ label: 'ACTION', field: 'action', name: 'action', align: 'center' });
+      } else if (!authUser.value?.canEdit && columns.value.some(col => col.name === 'action')) {
+        columns.value = columns.value.filter(col => col.name !== 'action');
+      }
+    };
+
+    onMounted(() => {
+      fetchEmployments();
+    });
 
     const isFieldEditable = (colName: string) => {
       return colName === 'level' || colName === 'position';
@@ -145,6 +155,9 @@ export default defineComponent({
           positionId: employmentRow.position.id,
         };
         await employmentService.updateEmployment(updatedData);
+        if(employmentRow.id == authUser.value?.id){
+          window.location.reload();
+        }
         fetchEmployments();
       }
     };

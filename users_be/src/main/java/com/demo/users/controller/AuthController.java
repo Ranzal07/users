@@ -1,6 +1,7 @@
 package com.demo.users.controller;
 
 import com.demo.users.payload.AuthRequest;
+import com.demo.users.payload.SignupRequest;
 import com.demo.users.service.AuthService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,18 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody SignupRequest request, HttpServletResponse response) {
+        try {
+            authService.signup(request, response);
+            return ResponseEntity.ok("Signup successful");
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during signup: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/authenticate")
     public ResponseEntity<String> authenticate(@RequestBody AuthRequest request, HttpServletResponse response) {

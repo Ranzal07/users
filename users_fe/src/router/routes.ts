@@ -11,6 +11,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import('pages/AuthPage.vue'),
   },
   {
+    path: '/v1/auth/signup',
+    component: () => import('pages/SignUpPage.vue'),
+  },
+  {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
